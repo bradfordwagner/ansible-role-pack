@@ -1,10 +1,23 @@
 ---
-# vars file for azure-blob-cli
-abc_platform: '{{ ansible_system }}_{{ abc_ansible_arch_to_download_arch[ansible_architecture] }}'
-abc_tgz: abc_{{ abc_ver }}_{{ abc_platform }}.tar.gz
-abc_tmp_tgz: /tmp/{{ abc_tgz }}
-abc_url: '{{ abc_mirror }}/{{ abc_ver }}/go-azure-blob-cli_{{ abc_ver }}_{{ abc_platform }}.tar.gz'
-abc_checksum: '{{ abc_checksums[abc_ver][abc_platform] }}'
-abc_install_dir: '{{ abc_parent_install_dir }}/go-azure-blob-cli-{{ abc_ver }}'
-abc_installed_exe: '{{ abc_install_dir }}/abc'
-abc_installed_link: '{{ abc_parent_install_dir }}/bin/abc'
+gri_archive_formats:
+  # pack drops architecture on amd64, making a custom override necessary
+  # example resolutions:
+  # pack-v0.34.2-linux.tgz
+  # pack-v0.34.2-linux-arm64.tgz
+  pack: |
+    {{- app_repo }}{{ app_separator }}{{ app.tag }}{{ app_separator }}{{ gri_os -}}
+    {% if 'amd64' != gri_arch %}
+    {{ app_separator }}{{ gri_arch -}}
+    {% endif %}
+    .{{ app_archive_extension -}}
+gri_checksum_formats:
+  # pack publishes a separate sha256 checksum file per archive instead of a checksums.txt
+  pack: '{{ app_archive_format }}.sha256'
+gri_installs:
+  # https://github.com/buildpacks/pack/releases
+  - repo: buildpacks/pack
+    archive_extension: tgz
+    archive_key: pack
+    checksum_key: pack
+    separator: '-'
+    tag: '{{ pack_version }}'
