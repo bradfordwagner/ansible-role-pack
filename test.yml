@@ -3,7 +3,7 @@
   roles:
     - role: '{{ playbook_dir }}'
   tasks:
-    - command: argo
+    - command: pack
       register: test_output
     - name: assert binary prints help output
       debug:

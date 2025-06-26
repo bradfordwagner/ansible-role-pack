@@ -1,17 +1,23 @@
 ---
 gri_archive_formats:
-  argo_workflows: argo-{{ gri_os }}-{{ gri_arch }}.gz
+  # pack drops architecture on amd64, making a custom override necessary
+  # example resolutions:
+  # pack-v0.34.2-linux.tgz
+  # pack-v0.34.2-linux-arm64.tgz
+  pack: |
+    {{- app_repo }}{{ app_separator }}{{ app.tag }}{{ app_separator }}{{ gri_os -}}
+    {% if 'amd64' != gri_arch %}
+    {{ app_separator }}{{ gri_arch -}}
+    {% endif %}
+    .{{ app_archive_extension -}}
 gri_checksum_formats:
-  argo_workflows: 'argo-workflows-cli-checksums.txt'
-gri_unarchive_binary_formats:
-  argo_workflows: 'argo-{{ gri_os }}-{{ gri_arch }}'
+  # pack publishes a separate sha256 checksum file per archive instead of a checksums.txt
+  pack: '{{ app_archive_format }}.sha256'
 gri_installs:
-  # https://github.com/argoproj/argo-workflows/releases
-  - repo: argoproj/argo-workflows
+  # https://github.com/buildpacks/pack/releases
+  - repo: buildpacks/pack
+    archive_extension: tgz
+    archive_key: pack
+    checksum_key: pack
     separator: '-'
-    archive_key: argo_workflows
-    checksum_key: argo_workflows
-    unarchive_format: gzip
-    unarchive_binary_key: argo_workflows
-    binary_name: argo
-    tag: '{{ argo_version }}'
+    tag: '{{ pack_version }}'
